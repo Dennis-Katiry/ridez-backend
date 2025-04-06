@@ -3,15 +3,17 @@ require('dotenv').config();
 const rideModel = require('../models/ride.model');
 const mapService = require('./maps.service');
 const crypto = require('crypto');
-const { sendMessageToSocketId, emitToAdminRoom } = require('../socket'); 
+const { sendMessageToSocketId, emitToAdminRoom } = require('../socket');
 const Razorpay = require('razorpay');
 const captainModel = require('../models/captain.model');
 const serviceModel = require('../models/service.model');
 
-const emitServiceStatsUpdate = async (io) => { 
+const emitServiceStatsUpdate = async (io) => {
   const rides = await rideModel.find().lean();
   const captains = await captainModel.find().select('-password').lean();
+  console.log('Executing serviceModel.find() to get services status');
   const servicesStatus = await serviceModel.find().lean();
+  console.log('servicesStatus result:', servicesStatus);
 
   const revenueByService = {
     'Bike Ride': rides
@@ -149,7 +151,7 @@ module.exports.createPaymentOrder = async ({ rideId, user }) => {
   return { orderId: order.id, amount: order.amount, currency: order.currency };
 };
 
-module.exports.verifyPayment = async ({ rideId, paymentId, orderId, signature, user, io }) => { 
+module.exports.verifyPayment = async ({ rideId, paymentId, orderId, signature, user, io }) => {
   console.log('Verifying payment for:', { rideId, paymentId, orderId });
   const ride = await rideModel.findOne({ _id: rideId, user: user._id });
   if (!ride) throw new Error('Ride not found');
